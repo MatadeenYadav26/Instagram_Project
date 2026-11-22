@@ -1,5 +1,7 @@
 const userModel = require('../models/user.model.js');
-const crypto = require('crypto');
+// const crypto = require('crypto'); /// basic level security
+// for advance level use bcryptjs
+const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 
 
@@ -36,7 +38,9 @@ async function registerController (req,res) {
         })
     }
 
-    const hash = crypto.createHash('sha256').update(password).digest('hex')
+    // const hash = crypto.createHash('sha256').update(password).digest('hex')
+
+    const hash = await bcrypt.hash(password, 10) // 10 means kitni layers of hashing krni h vo batata h
 
     const user = await userModel.create({
         username,
@@ -70,7 +74,8 @@ async function registerController (req,res) {
 
 
 }
- 
+
+
  async function loginController (req,res) {
     const {username ,email, password} = req.body
 
@@ -92,9 +97,10 @@ if(!user){
     })
 }
 
-    const hash = crypto.createHash('sha256').update(password).digest('hex')
+    // const hash = crypto.createHash('sha256').update(password).digest('hex')
 
-    const isPasswordValid = hash === user.password
+    // const isPasswordValid = hash === user.password
+    const isPasswordValid =  await bcrypt.compare(password, user.password) // ye function password ko hash krke user.password se compare krta h
 
     if(!isPasswordValid){
         return res.status(401).json({
